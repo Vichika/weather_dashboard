@@ -45,27 +45,27 @@ padding: 2rem;
 }
 
 .uvGrn {
-	background-color: lightgreen;
+	background-color: rgb(53, 218, 53);
 	border-radius: 5px;
 }
 
 .uvYlw {
-	background-color: lightyellow;
+	background-color: rgb(218, 218, 97);
 	border-radius: 5px;
 }
 
 .uvOrng {
-	background-color: lightsalmon;
+	background-color: rgb(226, 138, 104);
 	border-radius: 5px;
 }
 
 .uvRd {
-	background-color: palevioletred;
+	background-color: rgb(189, 56, 56);
 	border-radius: 5px;
 }
 
 .uvPrpl {
-	background-color: violet;
+	background-color: rgb(196, 101, 196);
 	border-radius: 5px;
 }
 
