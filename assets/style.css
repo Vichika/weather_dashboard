@@ -3,39 +3,41 @@ h3,
 h4,
 p {
 	color: #00203fff;
+	font-weight: bold;
 }
 
-body {
-	background-color: #efefe8ff;
-}
+
 
 .jumbotron {
-	background-color: rgb(40, 84, 230);
+	background-color: rgb(158, 170, 169);
 }
 
 .r2a {
-	border: 1px solid rgb(40, 84, 230);
+	border: 3px solid black;
 	border-radius: 0.25rem;
-	padding-left: 1rem;
+	padding-left: 2rem;
+	background-color: rgb(158, 170, 169);
 }
 
 .btn-primary {
-	background-color: rgb(40, 84, 230);
+	background-color: rgb(158, 170, 169);
 }
 
 #buttons-view,
 #city-input {
 	margin-top: 1rem;
-	border: 1px solid  rgb(40, 84, 230);
+	border: 3px solid black;
 	border-radius: 0.25rem;
+	margin-right: 50px;
 }
 
 .list-group-item {
-	background-color: #efefe8ff;
+	background-color: rgb(158, 170, 169);
 }
 
 .card {
-	background-color:  rgb(40, 84, 230);
+	background-color: rgb(158, 170, 169);
+	border: 3px solid black;
 }
 
 .card-body {
@@ -52,7 +54,7 @@ body {
 	border-radius: 5px;
 }
 
-.uvOrange {
+.uvOrng {
 	background-color: lightsalmon;
 	border-radius: 5px;
 }
@@ -74,8 +76,10 @@ img {
 
 .card-text {
 	font-size: 10pt;
+	
 }
 
 .forcast {
 	padding: 1rem;
+	
 }
