@@ -53,7 +53,7 @@ function citySearch(city) {
 
 		var F = ((K - 273.15) * 1.8 + 32).toFixed(0);
 
-		$(".temp").append("Temperature: " + F + " \u00B0F");
+		$(".temp").append("Temp: " + F + " \u00B0F");
 
 		var humidityInfo = response.main.humidity;
 		$(".humidity").append("Humidity: " + humidityInfo + "%");
@@ -214,7 +214,7 @@ function fiveDay(city) {
 		$(".iconFive").append(iconFive);
 
 		//temp
-		$(".tempOne").append("Temperature: ");
+		$(".tempOne").append("Temp: ");
 		$(".tempOne").append(
 			tempAvg(
 				response.list[2].main.temp,
@@ -224,7 +224,7 @@ function fiveDay(city) {
 		);
 		$(".tempOne").append(" °F");
 
-		$(".tempTwo").append("Temperature: ");
+		$(".tempTwo").append("Temp: ");
 		$(".tempTwo").append(
 			tempAvg(
 				response.list[10].main.temp,
@@ -234,7 +234,7 @@ function fiveDay(city) {
 		);
 		$(".tempTwo").append(" \u00B0F");
 
-		$(".tempThree").append("Temperature: ");
+		$(".tempThree").append("Temp: ");
 		$(".tempThree").append(
 			tempAvg(
 				response.list[18].main.temp,
@@ -244,7 +244,7 @@ function fiveDay(city) {
 		);
 		$(".tempThree").append(" \u00B0F");
 
-		$(".tempFour").append("Temperature: ");
+		$(".tempFour").append("Temp: ");
 		$(".tempFour").append(
 			tempAvg(
 				response.list[26].main.temp,
@@ -254,7 +254,7 @@ function fiveDay(city) {
 		);
 		$(".tempFour").append(" \u00B0F");
 
-		$(".tempFive").append("Temperature: ");
+		$(".tempFive").append("Temp: ");
 		$(".tempFive").append(
 			tempAvg(
 				response.list[34].main.temp,
