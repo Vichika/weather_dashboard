@@ -1,141 +1,200 @@
-var APIKey = "&appid=11b51103f6079707484ed0b263a1ead5";
-var queryURL = "https://api.openweathermap.org/data/2.5/weather?q=";
-var cityArr = JSON.parse(localStorage.getItem("cities")) || [];
+/**
+ * A security issue here, usually for an app that you're posting publicly, not a good idea
+ * to expose 3rd party API keys, it requires further setup and a .env file, so you pull in
+ * your `API_KEY` as a variable and you don't check in your .env file to source control  
+ * I'm sure you'll get into this later in your course. 
+ * 
+ * Also, following common conventions, constant variables like api keys 
+ * that don't change, also known as environment variables, the convention is to use const 
+ * and also uppercase snake_case
+ *  
+ */
+const API_KEY = "&appid=11b51103f6079707484ed0b263a1ead5";
+const QUERY_URL = "https://api.openweathermap.org/data/2.5/weather?q=";
+/**
+ * we're not reassigning the value for cityArr here, const makes more sense to use
+ * Make sure you read through this
+ * https://alligator.io/js/var-let-const/
+ *  */ 
+const cityArr = JSON.parse(localStorage.getItem("cities")) || [];
 
 const m = moment();
 
-
 $(document).ready(function() {
-	var city = cityArr[cityArr.length - 1];
-	fiveDay(city);
-	citySearch(city);
+	const city = cityArr[cityArr.length - 1];
+	// only look for a city if one comes up from local storage
+	if (cityArr.length > 0) {
+		fiveDayForcast(city);
+		citySearch(city);
+	}
 });
 
-
-
-function citySearch(city) {
-
+function resetValuesInUI() {
 	$(".city").empty();
 	$(".temp").empty();
 	$(".humidity").empty();
 	$(".wind").empty();
 	$(".uvIndex").empty();
+}
 
-	var citySearch = queryURL + city + APIKey;
-
-
-
+function citySearch(city) {
+	resetValuesInUI();
+	/**
+	 * Use ES6 template strings
+	 * https://alligator.io/js/template-literals-es6/
+	 * 
+	 * */ 
+	const citySearch = `${QUERY_URL}${city}${API_KEY}`;
 	$.ajax({
 		url: citySearch,
 		method: "GET"
-	}).then(function(response) {
-
-		var cityInfo = response.name;
-
-
-		var dtInfo = response.dt;
-
-		var currentDt = moment.unix(dtInfo).format("L");
-
-		var iconDummy = "https://openweathermap.org/img/wn/";
-		var iconPng = "@2x.png";
-		var iconWeather = response.weather[0].icon;
-		var iconUrl = iconDummy + iconWeather + iconPng;
-
-		var iconImg = $("<img>");
-		iconImg.attr("src", iconUrl);
-		$(".city").append(cityInfo + " ");
-		$(".city").append(currentDt + " ");
-		$(".city").append(iconImg);
-
-	
-		var K = response.main.temp;
-
-		var F = ((K - 273.15) * 1.8 + 32).toFixed(0);
-
-		$(".temp").append("Temp: " + F + " \u00B0F");
-
-		var humidityInfo = response.main.humidity;
-		$(".humidity").append("Humidity: " + humidityInfo + "%");
-
-		var oldSpeed = response.wind.speed;
-
-		var newSpeed = (oldSpeed * 2.2369).toFixed(2);
-		$(".wind").append("Wind Speed: " + newSpeed + " MPH");
-
-		var lon = response.coord.lon;
-		var lat = response.coord.lat;
-
+	})
+	.then(response => {
+		// Move fill main card logic to its own function
+		fillMainCard(response);
+		
+		/**
+		 * Use es6 object destructuring, shorter to type and easier to read
+		 * https://alligator.io/js/object-array-destructuring-es2015/
+		 */
+		const { lon, lat } = response.coord;
 		uvIndex(lon, lat);
 	});
+}
+
+function fillMainCard(obj) {
+	const cityInfo = obj.name;
+	const dtInfo = obj.dt;
+	const currentDt = moment.unix(dtInfo).format("L");
+	const iconWeather = obj.weather[0].icon;
+	// ES6 template strings
+	const iconUrl = `https://openweathermap.org/img/wn/${iconWeather}@2x.png`;
+	const iconImg = $("<img>");
+	iconImg.attr("src", iconUrl);
+	$(".city").append(cityInfo + " ");
+	$(".city").append(currentDt + " ");
+	$(".city").append(iconImg);
+	const K = obj.main.temp;
+	const F = ((K - 273.15) * 1.8 + 32).toFixed(0);
+	$(".temp").append("Temp: " + F + " \u00B0F");
+	const humidityInfo = obj.main.humidity;
+	$(".humidity").append(`Humidity: ${humidityInfo}%`);
+	const oldSpeed = obj.wind.speed;
+	const newSpeed = (oldSpeed * 2.2369).toFixed(2);
+	$(".wind").append(`Wind Speed: ${newSpeed} MPH`);
 }
 
 
 function uvIndex(lon, lat) {
 
-	var indexURL =
-		"https://api.openweathermap.org/data/2.5/uvi?appid=11b51103f6079707484ed0b263a1ead5&lat=";
-	var middle = "&lon=";
-	var indexSearch = indexURL + lat + middle + lon;
-
-
+	const indexURL = `https://api.openweathermap.org/data/2.5/uvi?appid=11b51103f6079707484ed0b263a1ead5&lat=${lat}&lon=${lon}`;
+	
 	$.ajax({
-		url: indexSearch,
+		url: indexURL,
 		method: "GET"
-	}).then(function(response) {
-		var uvFinal = response.value;
-
+	})
+	.then(response => {
+		const uvFinal = response.value;
 		$(".uvIndex").append("UV Index: ");
-		var uvBtn = $("<button>").text(uvFinal);
+		const uvBtn = $("<button>").text(uvFinal);
 		$(".uvIndex").append(uvBtn);
-		if (uvFinal < 3) {
-			uvBtn.attr("class", "uvGrn");
-		} else if (uvFinal < 6) {
-			uvBtn.attr("class", "uvYlw");
-		} else if (uvFinal < 8) {
-			uvBtn.attr("class", "uvOrng");
-		} else if (uvFinal < 11) {
-			uvBtn.attr("class", "uvRd");
-		} else {
-			uvBtn.attr("class", "uvPrpl");
+		/**
+		 * Switch statements are easier to read than a bunch of if/else's.
+		 * Check out this blog on how to use switch statements in JS
+		 * https://www.digitalocean.com/community/tutorials/how-to-use-the-switch-statement-in-javascript
+		 */
+		switch (true) {
+			case uvFinal < 3:
+				uvBtn.attr("class", "uvGrn");
+				break;
+			case uvFinal < 6:
+				uvBtn.attr("class", "uvYlw");
+				break;
+			case uvFinal < 8:
+				uvBtn.attr("class", "uvOrng");
+				break;
+			case uvFinal < 11:
+				uvBtn.attr("class", "uvRd");
+				break;
+			default:
+				uvBtn.attr("class", "uvPrpl");
 		}
 	});
 }
-
-
 
 function renderButtons() {
 
 	$(".list-group").empty();
 
-	for (var i = 0; i < cityArr.length; i++) {
+	for (let i = 0; i < cityArr.length; i++) {
 
-		var a = $("<li>");
+		const li = $("<li>");
+		const city = cityArr[i]; 
+		/**
+		 * jQuery's addClass method can do mutilple classes at a time separated by a space
+		 * https://api.jquery.com/addClass/
+		 */
+		li.addClass("cityName list-group-item");
+		li.attr("data-name", city);
+		li.text(city);
 
-		a.addClass("cityName");
-		a.addClass("list-group-item");
-		a.attr("data-name", cityArr[i]);
-		a.text(cityArr[i]);
-
-		$(".list-group").append(a);
+		$(".list-group").append(li);
 	}
 
-	$(".cityName").on("click", function(event) {
+	$(".cityName").on("click", (event) => {
 		event.preventDefault();
 
-		var city = $(this).data("name");
+		const city = $(this).data("name");
 
-		fiveDay(city);
+		fiveDayForcast(city);
+
 		citySearch(city);
 	});
 }
 
 
+function dateOnFiveDay(obj, index, dayNum) {
+	const formattedDate = moment.unix(obj.list[index].dt).utc().format("L");
+	$(`.date${dayNum}`).append(formattedDate);
+}
 
-function fiveDay(city) {
-	var fiveFt = "https://api.openweathermap.org/data/2.5/forecast?q=";
-	var fiveURL = fiveFt + city + APIKey;
+function iconOnFiveDay(obj, index, dayNum) {
+	const icon = $("<img>");
+	const iconSrc =
+		"https://openweathermap.org/img/wn/" +
+		obj.list[index].weather[0].icon +
+		"@2x.png";
+	icon.attr("src", iconSrc);
+	$(`.icon${dayNum}`).append(icon);
+}
 
+function tempOnFiveDay(obj, indexes, dayNum) {
+	$(`.temp${dayNum}`).append("Temp: ");
+	$(`.temp${dayNum}`).append(
+		tempAvg(
+			obj.list[indexes[0]].main.temp,
+			obj.list[indexes[1]].main.temp,
+			obj.list[indexes[2]].main.temp
+		)
+	);
+	$(`.temp${dayNum}`).append(" °F");
+}
+
+function humidityOnFiveDay(obj, indexes, dayNum) {
+	$(`.humidity${dayNum}`).append("Humidity: ");
+	$(`.humidity${dayNum}`).append(
+			humidityAvg(
+				obj.list[indexes[0]].main.humidity,
+				obj.list[indexes[1]].main.humidity,
+				obj.list[indexes[2]].main.humidity
+			)
+		);
+	$(`.humidity${dayNum}`).append("%");
+}
+
+function fiveDayForcast(city) {
+	const fiveFt = "https://api.openweathermap.org/data/2.5/forecast?q=";
+	const fiveURL = fiveFt + city + API_KEY;
 
 	$(".card-text").empty();
 	$(".card-title").empty();
@@ -143,218 +202,58 @@ function fiveDay(city) {
 	$.ajax({
 		url: fiveURL,
 		method: "GET"
-	}).then(function(response) {
-
-		var dateOne = moment
-			.unix(response.list[1].dt)
-			.utc()
-			.format("L");
-		$(".dateOne").append(dateOne);
-		var dateTwo = moment
-			.unix(response.list[9].dt)
-			.utc()
-			.format("L");
-		$(".dateTwo").append(dateTwo);
-		var dateThree = moment
-			.unix(response.list[17].dt)
-			.utc()
-			.format("L");
-		$(".dateThree").append(dateThree);
-		var dateFour = moment
-			.unix(response.list[25].dt)
-			.utc()
-			.format("L");
-		$(".dateFour").append(dateFour);
-		var dateFive = moment
-			.unix(response.list[33].dt)
-			.utc()
-			.format("L");
-		$(".dateFive").append(dateFive);
-
-		//icon
-		var iconOne = $("<img>");
-		var iconOneSrc =
-			"https://openweathermap.org/img/wn/" +
-			response.list[4].weather[0].icon +
-			"@2x.png";
-
-		iconOne.attr("src", iconOneSrc);
-		$(".iconOne").append(iconOne);
-
-		var iconTwo = $("<img>");
-		var iconTwoSrc =
-			"https://openweathermap.org/img/wn/" +
-			response.list[12].weather[0].icon +
-			"@2x.png";
-		iconTwo.attr("src", iconTwoSrc);
-		$(".iconTwo").append(iconTwo);
-
-		var iconThree = $("<img>");
-		var iconThreeSrc =
-			"https://openweathermap.org/img/wn/" +
-			response.list[20].weather[0].icon +
-			"@2x.png";
-		iconThree.attr("src", iconThreeSrc);
-		$(".iconThree").append(iconThree);
-
-		var iconFour = $("<img>");
-		var iconFourSrc =
-			"https://openweathermap.org/img/wn/" +
-			response.list[28].weather[0].icon +
-			"@2x.png";
-		iconFour.attr("src", iconFourSrc);
-		$(".iconFour").append(iconFour);
-
-		var iconFive = $("<img>");
-		var iconFiveSrc =
-			"https://openweathermap.org/img/wn/" +
-			response.list[36].weather[0].icon +
-			"@2x.png";
-		iconFive.attr("src", iconFiveSrc);
-		$(".iconFive").append(iconFive);
-
-		//temp
-		$(".tempOne").append("Temp: ");
-		$(".tempOne").append(
-			tempAvg(
-				response.list[2].main.temp,
-				response.list[4].main.temp,
-				response.list[6].main.temp
-			)
-		);
-		$(".tempOne").append(" °F");
-
-		$(".tempTwo").append("Temp: ");
-		$(".tempTwo").append(
-			tempAvg(
-				response.list[10].main.temp,
-				response.list[12].main.temp,
-				response.list[14].main.temp
-			)
-		);
-		$(".tempTwo").append(" \u00B0F");
-
-		$(".tempThree").append("Temp: ");
-		$(".tempThree").append(
-			tempAvg(
-				response.list[18].main.temp,
-				response.list[20].main.temp,
-				response.list[22].main.temp
-			)
-		);
-		$(".tempThree").append(" \u00B0F");
-
-		$(".tempFour").append("Temp: ");
-		$(".tempFour").append(
-			tempAvg(
-				response.list[26].main.temp,
-				response.list[28].main.temp,
-				response.list[30].main.temp
-			)
-		);
-		$(".tempFour").append(" \u00B0F");
-
-		$(".tempFive").append("Temp: ");
-		$(".tempFive").append(
-			tempAvg(
-				response.list[34].main.temp,
-				response.list[36].main.temp,
-				response.list[38].main.temp
-			)
-		);
-		$(".tempFive").append(" \u00B0F");
-
-		//humidity
-		$(".humidityOne").append("Humidity: ");
-		$(".humidityOne").append(
-			humidityAvg(
-				response.list[2].main.humidity,
-				response.list[4].main.humidity,
-				response.list[6].main.humidity
-			)
-		);
-		$(".humidityOne").append("%");
-
-		$(".humidityTwo").append("Humidity: ");
-		$(".humidityTwo").append(
-			humidityAvg(
-				response.list[10].main.humidity,
-				response.list[12].main.humidity,
-				response.list[14].main.humidity
-			)
-		);
-		$(".humidityTwo").append("%");
-
-		$(".humidityThree").append("Humidity: ");
-		$(".humidityThree").append(
-			humidityAvg(
-				response.list[18].main.humidity,
-				response.list[20].main.humidity,
-				response.list[22].main.humidity
-			)
-		);
-		$(".humidityThree").append("%");
-
-		$(".humidityFour").append("Humidity: ");
-		$(".humidityFour").append(
-			humidityAvg(
-				response.list[26].main.humidity,
-				response.list[28].main.humidity,
-				response.list[30].main.humidity
-			)
-		);
-		$(".humidityFour").append("%");
-
-		$(".humidityFive").append("Humidity: ");
-		$(".humidityFive").append(
-			humidityAvg(
-				response.list[34].main.humidity,
-				response.list[36].main.humidity,
-				response.list[38].main.humidity
-			)
-		);
-		$(".humidityFive").append("%");
+	}) // es6 arrow functions for these anonymous functions
+	.then(response => {
+		const wordDayNums = ['One', 'Two', 'Three', 'Four', 'Five'];
+		const dateIndexes = [1,9,17,25,33];
+		const iconIndexes = [4,12,20,28,36];
+		const tempAndHumidtyIndexes = [[2,4,6],[10,12,14], [18,20,22], [26,28,30], [34,36,38]];
+		for (let i=0; i<5; i++) {
+			const currentDay = wordDayNums[i];
+			const currentDate = dateIndexes[i];
+			const currentIcon = iconIndexes[i];
+			const currentTempHumidity = tempAndHumidtyIndexes[i];
+			dateOnFiveDay(response, currentDate, currentDay);
+			iconOnFiveDay(response, currentIcon, currentDay);
+			tempOnFiveDay(response, currentTempHumidity, currentDay);
+			humidityOnFiveDay(response, currentTempHumidity, currentDay);
+		}
 	});
 }
 
 function tempAvg(x, y, z) {
-	var avgThree = (x + y + z) / 3.0;
-	var avgReturn = ((avgThree - 273.15) * 1.8 + 32).toFixed(0);
+	const avgThree = (x + y + z) / 3.0;
+	const avgReturn = ((avgThree - 273.15) * 1.8 + 32).toFixed(0);
 	return avgReturn;
 }
 
 function humidityAvg(x, y, z) {
-	var avgHum = (x + y + z) / 3.0;
+	const avgHum = (x + y + z) / 3.0;
 	return avgHum.toFixed(0);
 }
 
 
-$("#add-city").on("click", function(event) {
+$("#add-city").on("click", (event) => {
 	event.preventDefault();
 
+	const city = $("#city-input").val().trim();
 
-	var city = $("#city-input")
-		.val()
-		.trim();
-
-	var containsCity = false;
-
-	if (cityArr != null) {
-		$(cityArr).each(function(x) {
-			if (cityArr[x] === city) {
-				containsCity = true;
-			}
-		});
+	let containsCity = false;
+	/**
+	 * Learn array search & filtering methods, they will come in handy
+	 * https://alligator.io/js/array-search-methods/
+	 */
+	if (cityArr != null && cityArr.includes(city)) {
+		containsCity = true;
 	}
 
 	if (containsCity === false) {
 		cityArr.push(city);
 	}
 
-
 	localStorage.setItem("cities", JSON.stringify(cityArr));
 
-	fiveDay(city);
+	fiveDayForcast(city);
 	citySearch(city);
 	renderButtons();
 });
